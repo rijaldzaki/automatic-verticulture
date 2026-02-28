@@ -13,10 +13,14 @@ void setupFlow() {
 }
 
 float getFlowRate() {
-    // Rumus debit YF-S201C: $Q = \frac{Pulsa}{7.5}$ (Liter/menit)
-    float rate = (_pulseCount / 7.5);
-    _pulseCount = 0; // Reset untuk pengukuran berikutnya
-    return rate;
-}
+    noInterrupts();
+    int pulses = _pulseCount;
+    _pulseCount = 0;
+    interrupts();
 
+    // Konstanta YF-S201C: F = 7.5 * Q (L/min)
+    // Jika fungsi ini dipanggil setiap 1000ms di TaskControl:
+    float flowRate = (float)pulses / 7.5; 
+    return flowRate;
+}
 #endif
