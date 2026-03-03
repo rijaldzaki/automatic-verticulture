@@ -37,13 +37,16 @@ void TaskControl(void *pv) {
         
         // (Overflow Protection: solenoid mati jika air sudah mencapai batas atas )
         bool statusSolenoid = false;
+
         if (kondisiHaus && (lvl < LEVEL_SAFETY)) {
             statusSolenoid = true;
+        } else {
+            statusSolenoid = false; // Pastikan ada kondisi pemutus
         }
         
         controlSolenoid(statusSolenoid);
 
-        // Update data global dengan Mutex
+        // Update data global Mutex
         if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {
             currentData = {td.t1, td.t2, lvl, flow, sd.s1, sd.s2, statusSolenoid};
             xSemaphoreGive(dataMutex);
