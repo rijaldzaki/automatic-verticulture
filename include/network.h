@@ -48,8 +48,8 @@ void maintainConnection() {
 void sendTelemetry(float t1, float t2, int s1, int s2, float level, float flow, bool sol) {
     StaticJsonDocument<512> doc;
     doc["id"] = POT_ID;
-    doc["t_atas"] = t1; 
-    doc["t_bawah"] = t2;
+    doc["t_atas"] = round(t1 * 100.0) / 100.0;
+    doc["t_bawah"] = round(t2 * 100.0) / 100.0; 
     doc["h_atas"] = s1; 
     doc["h_bawah"] = s2;
     doc["lvl"] = level;

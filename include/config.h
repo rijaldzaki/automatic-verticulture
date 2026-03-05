@@ -2,7 +2,7 @@
 #define __CONFIG_H__
 
 // Ubah ID
-#define POT_ID "POT-01" 
+#define POT_ID "POT-04" 
 #define TOPIC_PREFIX "verticulture/devices/"
 
 // Pemetaan Pin (Tetap sama)
