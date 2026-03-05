@@ -6,13 +6,13 @@
 #define TOPIC_PREFIX "verticulture/devices/"
 
 // Pemetaan Pin (Tetap sama)
-#define PIN_SOIL_1 34 // (atas) ADC6
-#define PIN_SOIL_2 35  // (bawah) ADC7
-#define PIN_DS18B20 13
-#define PIN_FLOW 4
-#define PIN_TRIG 12
+#define PIN_SOIL_1 33 // (atas) ADC6
+#define PIN_SOIL_2 32  // (bawah) ADC7
+#define PIN_DS18B20 26
+#define PIN_FLOW 19
+#define PIN_TRIG 27
 #define PIN_ECHO 14
-#define PIN_SOLENOID 26
+#define PIN_SOLENOID 25
 
 // Kalibrasi
 #define SOIL_DRY 3200      
@@ -29,6 +29,6 @@
 // Network
 #define WIFI_SSID "Kangkung IOT"
 #define WIFI_PASS "cloudnyiram"
-#define MQTT_BROKER "192.168.100.60" // IP broker MQTT
+#define MQTT_BROKER "10.71.238.37" // IP broker MQTT
 
 #endif

@@ -22,17 +22,27 @@ void setupNetwork() {
 
 void maintainConnection() {
     if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("Reconnecting WiFi...");
         WiFi.begin(WIFI_SSID, WIFI_PASS);
+        int retries = 0;
+        while (WiFi.status() != WL_CONNECTED && retries < 20) {
+            vTaskDelay(pdMS_TO_TICKS(500));
+            retries++;
+        }
     }
-    if (!_mqtt.connected()) {
-        // Last Will and Testament (LWT) :  kirim pesan "OFFLINE" jika ESP32 mati
+
+    // ✅ Hanya connect MQTT jika WiFi sudah ready
+    if (WiFi.status() == WL_CONNECTED && !_mqtt.connected()) {
         String lwtTopic = getTopic("status");
         if (_mqtt.connect(POT_ID, lwtTopic.c_str(), 1, true, "OFFLINE")) {
             Serial.println("Connected to MQTT Broker");
-            _mqtt.publish(lwtTopic.c_str(), "ONLINE", true); // Status Online
+            _mqtt.publish(lwtTopic.c_str(), "ONLINE", true);
         }
     }
-    _mqtt.loop();
+
+    if (WiFi.status() == WL_CONNECTED) {
+        _mqtt.loop();
+    }
 }
 
 void sendTelemetry(float t1, float t2, int s1, int s2, float level, float flow, bool sol) {
@@ -49,6 +59,7 @@ void sendTelemetry(float t1, float t2, int s1, int s2, float level, float flow, 
     char buffer[512];
     serializeJson(doc, buffer);
     _mqtt.publish(getTopic("data").c_str(), buffer);
+
 }
 
 #endif

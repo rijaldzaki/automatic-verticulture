@@ -8,7 +8,7 @@
 
 // Struktur data
 struct SystemState {
-    float t1, t2, level, flow;
+    float t1, t2, flow, level; 
     int s1, s2; 
     bool solenoid;
 } currentData;
@@ -38,6 +38,14 @@ void TaskControl(void *pv) {
         // (Overflow Protection: solenoid mati jika air sudah mencapai batas atas )
         bool statusSolenoid = false;
 
+        Serial.print("Temp 1: "); Serial.print(td.t1); Serial.print(" °C | ");
+        Serial.print("Temp 2: "); Serial.print(td.t2); Serial.println(" °C | ");
+        Serial.print("Soil 1: "); Serial.print(sd.s1); Serial.println(" % | ");
+        Serial.print("Soil 2: "); Serial.print(sd.s2); Serial.println(" % | ");
+        Serial.print("Flow: "); Serial.print(flow); Serial.println(" L/min ");
+        Serial.print("Level: "); Serial.print(lvl); Serial.println(" % | ");
+        
+
         if (kondisiHaus && (lvl < LEVEL_SAFETY)) {
             statusSolenoid = true;
         } else {
@@ -48,7 +56,7 @@ void TaskControl(void *pv) {
 
         // Update data global Mutex
         if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {
-            currentData = {td.t1, td.t2, lvl, flow, sd.s1, sd.s2, statusSolenoid};
+            currentData = {td.t1, td.t2, flow, lvl, sd.s1, sd.s2, statusSolenoid};
             xSemaphoreGive(dataMutex);
         }
 
@@ -60,7 +68,8 @@ void TaskControl(void *pv) {
 void TaskTelemetry(void *pv) {
     setupNetwork();
     uint32_t lastPublish = 0;
-    const uint32_t interval = 60000; // Kirim data tiap 1 mnt
+    // const uint32_t interval = 60000; // Kirim data tiap 1 mnt
+    const uint32_t interval = 5000;
 
     for(;;) {
         maintainConnection(); // LWT "OFFLINE" jika ESP32 mati
@@ -69,9 +78,9 @@ void TaskTelemetry(void *pv) {
             if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {
                 // fungsi di network.h menerima 7 parameter
                 sendTelemetry(
-                    currentData.t1, currentData.t2, 
-                    currentData.s1, currentData.s2, 
-                    currentData.level, currentData.flow, 
+                    currentData.t1, currentData.t2,
+                    currentData.s1, currentData.s2,
+                    currentData.level, currentData.flow,
                     currentData.solenoid
                 );
                 xSemaphoreGive(dataMutex);
