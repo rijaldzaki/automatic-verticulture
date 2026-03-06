@@ -6,7 +6,7 @@
 #include "valve.h"
 #include "network.h"
 
-// Struktur data
+// Global Data Structure
 struct SystemState {
     float t1, t2, flow, level; 
     int s1, s2; 
@@ -15,7 +15,7 @@ struct SystemState {
 
 SemaphoreHandle_t dataMutex;
 
-// --- TASK CONTROL (Core 1: Sensor & Logic) ---
+// TASK CONTROL (Core 1: Sensor & Logic)
 void TaskControl(void *pv) {
     setupTemp(); 
     setupLevel();
@@ -28,39 +28,39 @@ void TaskControl(void *pv) {
         float lvl = getWaterLevelPct();
         float flow = getFlowRate();
 
-        // LOGIKA KONTROL (OR STRATEGY)
-        // 1. Jika tanah atas kering (<30%) OR
-        // 2. Jika tanah bawah kering (<30%) OR
-        // 3. Jika suhu udara terlalu panas (>TEMP_MAX) OR
-        // 4. Jika level air di pot sangat rendah (<LEVEL_CRITICAL)
-        bool kondisiHaus = (sd.s1 < 30) || (sd.s2 < 30) || (td.t1 > TEMP_MAX) || (lvl < LEVEL_CRITICAL);
+        bool drySoil  = (sd.s1 < SOIL_DRY_THRESHOLD) || (sd.s2 < SOIL_DRY_THRESHOLD);  // Primary Trigger
+        bool tempValid    = (td.t1 > TEMP_WARM) && (td.t1 < TEMP_MAX); // Validator
+        bool emergencyTemp = (td.t1 > TEMP_MAX); // Bypass Trigger
+        bool emergencyLevel = (lvl < LEVEL_CRITICAL); 
+
+        bool FinalDecision = (drySoil && tempValid) || emergencyTemp || emergencyLevel; // Final Decision Trigger 
         
-        // (Overflow Protection: solenoid mati jika air sudah mencapai batas atas )
+        // (Overflow Protection: solenoid OFF jika air sudah mencapai batas atas )
         bool statusSolenoid = false;
 
-        Serial.print("Temp 1: "); Serial.print(td.t1); Serial.print(" °C | ");
-        Serial.print("Temp 2: "); Serial.print(td.t2); Serial.println(" °C | ");
-        Serial.print("Soil 1: "); Serial.print(sd.s1); Serial.println(" % | ");
-        Serial.print("Soil 2: "); Serial.print(sd.s2); Serial.println(" % | ");
-        Serial.print("Flow: "); Serial.print(flow); Serial.println(" L/min ");
-        Serial.print("Level: "); Serial.print(lvl); Serial.println(" % | ");
+        // Serial.print("Temp 1: "); Serial.print(td.t1); Serial.print(" °C | ");
+        // Serial.print("Temp 2: "); Serial.print(td.t2); Serial.println(" °C | ");
+        // Serial.print("Soil 1: "); Serial.print(sd.s1); Serial.println(" % | ");
+        // Serial.print("Soil 2: "); Serial.print(sd.s2); Serial.println(" % | ");
+        // Serial.print("Flow: "); Serial.print(flow); Serial.println(" L/min ");
+        // Serial.print("Level: "); Serial.print(lvl); Serial.println(" % | ");
         
 
-        if (kondisiHaus && (lvl < LEVEL_SAFETY)) {
+        if (FinalDecision && (lvl < LEVEL_SAFETY)) {
             statusSolenoid = true;
         } else {
-            statusSolenoid = false; // Pastikan ada kondisi pemutus
+            statusSolenoid = false; // kondisi pemutus
         }
         
         controlSolenoid(statusSolenoid);
 
-        // Update data global Mutex
+        // Data Global Update (Mutex)
         if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {
             currentData = {td.t1, td.t2, flow, lvl, sd.s1, sd.s2, statusSolenoid};
             xSemaphoreGive(dataMutex);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Cek kondisi setiap 1 s
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Cek kondisi (1s)
     }
 }
 
@@ -72,11 +72,10 @@ void TaskTelemetry(void *pv) {
     const uint32_t interval = 5000;
 
     for(;;) {
-        maintainConnection(); // LWT "OFFLINE" jika ESP32 mati
+        maintainConnection(); // LWT "OFFLINE" jika ESP32 OFF
 
         if (millis() - lastPublish > interval) {
             if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {
-                // fungsi di network.h menerima 7 parameter
                 sendTelemetry(
                     currentData.t1, currentData.t2,
                     currentData.s1, currentData.s2,
@@ -87,7 +86,7 @@ void TaskTelemetry(void *pv) {
             }
             lastPublish = millis();
         }
-        vTaskDelay(pdMS_TO_TICKS(100)); // Beri waktu untuk WiFi Stack
+        vTaskDelay(pdMS_TO_TICKS(100)); // Time for Wifi Stack
     }
 }
 
@@ -95,14 +94,13 @@ void setup() {
     Serial.begin(115200);
     dataMutex = xSemaphoreCreateMutex();
     
-    // Core 1: Fokus ke sensing
+    // Core 1: Sensing
     xTaskCreatePinnedToCore(TaskControl, "Control", 4096, NULL, 3, NULL, 1);
     
-    // Core 0: Fokus ke MQTT & WiFi
+    // Core 0: MQTT & WiFi
     xTaskCreatePinnedToCore(TaskTelemetry, "Network", 8192, NULL, 1, NULL, 0);
 }
 
 void loop() { 
-    // Kontrol via FreeRTOS, loop() utama delete
     vTaskDelete(NULL); 
 }

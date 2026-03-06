@@ -10,7 +10,7 @@ void setupSolenoid() {
 }
 
 void controlSolenoid(bool state) {
-    digitalWrite(PIN_SOLENOID, state ? LOW : HIGH); // LOW = ON, HIGH = OFF
+    digitalWrite(PIN_SOLENOID, state ? LOW : HIGH); // LOW -> ON, HIGH -> OFF
 }
 
 #endif

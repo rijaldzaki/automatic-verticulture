@@ -19,7 +19,7 @@ float getFlowRate() {
     interrupts();
 
     // Konstanta YF-S201C: F = 7.5 * Q (L/min)
-    // Jika fungsi ini dipanggil setiap 1000ms di TaskControl:
+    // If : Fungsi ini dipanggil setiap 1000ms di TaskControl:
     float flowRate = (float)pulses / 7.5; 
     return flowRate;
 }

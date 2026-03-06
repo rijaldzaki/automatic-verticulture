@@ -9,7 +9,7 @@
 WiFiClient _espClient;
 PubSubClient _mqtt(_espClient);
 
-// topik: verticulture/devices/POT-01/data
+// topik MQTT: verticulture/devices/POT-01/data
 String getTopic(String suffix) {
     return String(TOPIC_PREFIX) + String(POT_ID) + "/" + suffix;
 }
@@ -31,7 +31,7 @@ void maintainConnection() {
         }
     }
 
-    // ✅ Hanya connect MQTT jika WiFi sudah ready
+    // Wifi Ready -> MQTT Connect
     if (WiFi.status() == WL_CONNECTED && !_mqtt.connected()) {
         String lwtTopic = getTopic("status");
         if (_mqtt.connect(POT_ID, lwtTopic.c_str(), 1, true, "OFFLINE")) {

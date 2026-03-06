@@ -23,7 +23,7 @@ float getWaterLevelPct() {
     // Filter JSN-SR04T: Abaikan pembacaan di bawah 20cm (blind spot) atau di atas tangki
     if (distance < 20 || distance > TANK_HEIGHT + SENSOR_OFFSET) return 0.0;
 
-    // Kalkulasi persentase dengan offset pemasangan
+    // Persentase dengan offset pemasangan
     float actualWaterDist = distance - SENSOR_OFFSET; 
     float pct = (1.0 - (actualWaterDist / TANK_HEIGHT)) * 100.0;
     
