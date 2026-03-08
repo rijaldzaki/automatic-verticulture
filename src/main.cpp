@@ -28,14 +28,12 @@ void TaskControl(void *pv) {
         float lvl = getWaterLevelPct();
         float flow = getFlowRate();
 
-        bool drySoil  = (sd.s1 < SOIL_DRY_THRESHOLD) || (sd.s2 < SOIL_DRY_THRESHOLD);  // Primary Trigger
-        bool tempValid    = (td.t1 > TEMP_WARM) && (td.t1 < TEMP_MAX); // Validator
+        bool drySoil  = (sd.s1 < SOIL_MIN) || (sd.s2 < SOIL_MIN);  // Primary Trigger
+        bool tempValid    = (td.t1 > TEMP_MIN) && (td.t1 < TEMP_MAX); // Validator
         bool emergencyTemp = (td.t1 > TEMP_MAX); // Bypass Trigger
-        bool emergencyLevel = (lvl < LEVEL_CRITICAL); 
-
+        bool emergencyLevel = (lvl < LEVEL_MIN);  
         bool FinalDecision = (drySoil && tempValid) || emergencyTemp || emergencyLevel; // Final Decision Trigger 
         
-        // (Overflow Protection: solenoid OFF jika air sudah mencapai batas atas )
         bool statusSolenoid = false;
 
         // Serial.print("Temp 1: "); Serial.print(td.t1); Serial.print(" °C | ");
@@ -46,7 +44,7 @@ void TaskControl(void *pv) {
         // Serial.print("Level: "); Serial.print(lvl); Serial.println(" % | ");
         
 
-        if (FinalDecision && (lvl < LEVEL_SAFETY)) {
+        if (FinalDecision && (lvl < LEVEL_MAX)) {
             statusSolenoid = true;
         } else {
             statusSolenoid = false; // kondisi pemutus
