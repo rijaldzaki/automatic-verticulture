@@ -3,16 +3,18 @@
 
 // ID Pot 
 #define POT_ID "POT-01" 
-#define TOPIC_PREFIX "verticulture/devices/"
+#define POT_NUM "01"
+#define TOPIC_PREFIX "farm/pot/"
 
 // Pin Config
 #define PIN_SOIL_1 33 
 #define PIN_SOIL_2 32
 #define PIN_DS18B20 26
-#define PIN_FLOW 19
+// #define PIN_FLOW 19
+#define PIN_FLOW 22
 #define PIN_TRIG 27
 #define PIN_ECHO 14
-#define PIN_SOLENOID 25
+#define PIN_SOLENOID 23
 
 #define SOIL_DRY 3200      
 #define SOIL_WET 1200  
@@ -30,6 +32,6 @@
 // Network Config
 #define WIFI_SSID "Kangkung IOT"
 #define WIFI_PASS "siramterus"
-#define MQTT_BROKER "10.71.238.37"
+#define MQTT_BROKER "10.231.53.37"
 
 #endif

@@ -29,19 +29,20 @@ void TaskControl(void *pv) {
         float flow = getFlowRate();
 
         bool drySoil  = (sd.s1 < SOIL_MIN) || (sd.s2 < SOIL_MIN);  // Primary Trigger
-        bool tempValid    = (td.t1 > TEMP_MIN) && (td.t1 < TEMP_MAX); // Validator
+        bool tempValid    = (td.t1 > TEMP_MIN) && (td.t1 < TEMP_MAX) ||  ((td.t2 > TEMP_MIN) && (td.t2 < TEMP_MAX)); 
         bool emergencyTemp = (td.t1 > TEMP_MAX); // Bypass Trigger
         bool emergencyLevel = (lvl < LEVEL_MIN);  
         bool FinalDecision = (drySoil && tempValid) || emergencyTemp || emergencyLevel; // Final Decision Trigger 
-        
+        // bool FinalDecision = emergencyTemp; // Final Decision Trigger
         bool statusSolenoid = false;
 
-        // Serial.print("Temp 1: "); Serial.print(td.t1); Serial.print(" °C | ");
-        // Serial.print("Temp 2: "); Serial.print(td.t2); Serial.println(" °C | ");
-        // Serial.print("Soil 1: "); Serial.print(sd.s1); Serial.println(" % | ");
-        // Serial.print("Soil 2: "); Serial.print(sd.s2); Serial.println(" % | ");
-        // Serial.print("Flow: "); Serial.print(flow); Serial.println(" L/min ");
-        // Serial.print("Level: "); Serial.print(lvl); Serial.println(" % | ");
+        //print serial
+        Serial.print("Temp 1: "); Serial.print(td.t1); Serial.print(" °C | ");
+        Serial.print("Temp 2: "); Serial.print(td.t2); Serial.println(" °C | ");
+        Serial.print("Soil 1: "); Serial.print(sd.s1); Serial.println(" % | ");
+        Serial.print("Soil 2: "); Serial.print(sd.s2); Serial.println(" % | ");
+        Serial.print("Flow: "); Serial.print(flow); Serial.println(" L/min ");
+        Serial.print("Level: "); Serial.print(lvl); Serial.println(" % | ");
         
 
         if (FinalDecision && (lvl < LEVEL_MAX)) {
@@ -66,7 +67,7 @@ void TaskControl(void *pv) {
 void TaskTelemetry(void *pv) {
     setupNetwork();
     uint32_t lastPublish = 0;
-    // const uint32_t interval = 60000; // Kirim data tiap 1 mnt
+    // const uint32_t interval = 60000; //  1 mnt
     const uint32_t interval = 5000;
 
     for(;;) {
